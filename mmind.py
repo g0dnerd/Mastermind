@@ -141,8 +141,10 @@ def make_guess(guessHistory, ratingHistory, remainingCodes):
 	if guesses != 0:	
 		
 		remainingCodes = determine_rest(remainingCodes, guessHistory, ratingHistory)
-		# print(str(len(remainingCodes)) + " codes remain possible.")		
-		# print(remainingCodes)
+		print(str(len(remainingCodes)) + " codes remain possible.")		
+		print("Scanning " + str(len(remainingCodes)*14) + " possibilities...")
+		if len(remainingCodes) < 15:
+			print(remainingCodes)
 		
 		if len(remainingCodes) == 1:
 			guess = list(remainingCodes[0])
