@@ -2,6 +2,7 @@ import numpy as np
 import itertools
 from itertools import permutations
 import random
+from timer import Timer
 
 # returns True if newGuess is still a possible solution given guessHistory and ratingHistory, and False otherwise
 def eval_guess(newGuess, guessHistory, ratingHistory):
@@ -75,6 +76,7 @@ def minmax_guess(guessHistory, ratingHistory, remainingCodes):
 	eliminationCount = list()
 	eliminationGuesses = list()
 	eliminationRatings = list()
+	eliminationMinMax = {"guess":[], "elim":[], "rating": []}
 
 	for i in range(len(unusedCodes)):
 		for b in range(5):
@@ -88,16 +90,10 @@ def minmax_guess(guessHistory, ratingHistory, remainingCodes):
 					# print(i)
 					tempGuess = unusedCodes[i]
 					tempElim = count_eliminations(remainingCodes, tempGuess, tempRating, guessHistory, ratingHistory)
-					eliminationGuesses.append(list(tempGuess))
-					eliminationCount.append(tempElim)
-					eliminationRatings.append(list(tempRating))
+					eliminationMinMax["guess"].append(list(tempGuess))
+					eliminationMinMax["elim"].append(tempElim)
+					eliminationMinMax["rating"].append(list(tempRating))
 
-	eliminationMinMax = {"guess":[], "elim":[], "rating": []}
-
-	for i in range(len(eliminationGuesses)):
-		eliminationMinMax["guess"].append(eliminationGuesses[i])
-		eliminationMinMax["elim"].append(eliminationCount[i])
-		eliminationMinMax["rating"].append(eliminationRatings[i])
 
 	# look for the code that among all possible ratings has the lowest maximum of possible codes eliminated
 
@@ -143,10 +139,11 @@ def make_guess(guessHistory, ratingHistory, remainingCodes):
 		remainingCodes = determine_rest(remainingCodes, guessHistory, ratingHistory)
 		print(str(len(remainingCodes)) + " codes remain possible.")		
 		print("Scanning " + str(len(remainingCodes)*14) + " possibilities...")
-		if len(remainingCodes) < 15:
-			print(remainingCodes)
 		
-		if len(remainingCodes) == 1:
+		# if len(remainingCodes) < 15:
+		#	print(remainingCodes)
+		
+		if len(remainingCodes) < 3:
 			guess = list(remainingCodes[0])
 			guessHistory.append(guess)
 			unusedCodes.remove(list(guess))
@@ -198,6 +195,9 @@ def score_guess(guess, solution, ratingHistory):
 
 
 def main():
+
+	t = Timer()
+	t.start()
 
 	print("Welcome to Mastermind.")
 
@@ -282,6 +282,7 @@ def main():
 		if score[0] == p:
 			print("Solution found:", end = " ")
 			print(printGuess)
+			t.stop()
 			break
 
 
