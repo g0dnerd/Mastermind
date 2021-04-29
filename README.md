@@ -7,8 +7,11 @@ My code is most likely ugly, but still works.
 
 ## Changes
 
-* optimizing for MM(4,6) with optimal first guesses and lexical ordering
+* implemented KNUTH's algorithm with W = 5 for MM(4,6)
 
 ## TODOs
 
-* generate next possible code at each node instead of storing entire set of possible solutions
+* comment the damn code
+* optimize performance
+* look into why solution of (6,3,4,6) takes longer (repeating on identical remaining codes)
+* look into pruning
