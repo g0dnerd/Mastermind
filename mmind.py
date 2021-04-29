@@ -3,103 +3,195 @@ import itertools
 from itertools import permutations
 import random
 
-
 # returns True if newGuess is still a possible solution given guessHistory and ratingHistory, and False otherwise
 def eval_guess(newGuess, guessHistory, ratingHistory):
 
 	for i in range(len(guessHistory)):
 		
-		# overlap is the set of numbers that occur in the guess and the current historical guess
-		overlap = set(guessHistory[i]).intersection(newGuess)
+		tempScore = score_guess(newGuess, guessHistory[i], ratingHistory)
+		overlap = tempScore[0] + tempScore[1]
+
 
 		# if newGuess uses more numbers from a historical guess than the rating indicates, return False
-		if len(overlap) > (ratingHistory[i][0] + ratingHistory[i][1]):
+		if overlap != (ratingHistory[i][0] + ratingHistory[i][1]):
 			return False
 		else:
 			# score newGuess, if it has more black hits than the historical guess, return False
-			temp_score = score_guess(newGuess, guessHistory[i], ratingHistory)
+			tempScore = score_guess(newGuess, guessHistory[i], ratingHistory)
 			
-			if temp_score[0] != ratingHistory[i][0]:
+			if tempScore[0] != ratingHistory[i][0]:
 				return False
 	
 	return True
 
 
-def determine_rest(code_list, guessHistory, ratingHistory, p, c, count):
+def determine_rest(codeList, guessHistory, ratingHistory):
 
-	remaining_codes = code_list
-	deletion_indices = list()    
+	codesLeft = list(codeList)
+	deletionIndices = list()    
 
 	# if this is the first guess, all remaining codes are legal guesses
 	if not guessHistory:
-		return remaining_codes
+		return codesLeft
 
 	else:
 		# if a code is in guessHistory, remove it from the prospects
-		for i in range(len(code_list)):
-			if code_list[i] in guessHistory:
-				deletion_indices.append(i)
+		for i in range(len(codeList)):
+			if codeList[i] in guessHistory:
+				deletionIndices.append(i)
 
 		# if eval_guess determines the current code to not be a possible solution, remove it
-		for i in range(len(remaining_codes)):
-			if not eval_guess(list(remaining_codes[i]), guessHistory, ratingHistory):
-				deletion_indices.append(i)
+		for i in range(len(codesLeft)):
+			if not eval_guess(list(codesLeft[i]), guessHistory, ratingHistory):
+				deletionIndices.append(i)
 
-		for i  in sorted(deletion_indices, reverse = True):
-			del remaining_codes[i]
+		deletionIndices = list(dict.fromkeys(deletionIndices))
 
-		# print("Remaining codes before guessing: " + str(len(remaining_codes)))
-		return list(remaining_codes)
+		# print("Marked for deletion:")
+		# print(deletionIndices)
+
+		for i in sorted(deletionIndices, reverse = True):
+			del codesLeft[i]
+
+		# print("Remaining codes before guessing: " + str(len(codesLeft)))
+		return list(codesLeft)
+
+def count_eliminations(remainingCodes, guess, rating, guessHistory, ratingHistory):
+
+	tempGuessHistory = list(guessHistory)
+	tempGuessHistory.append(list(guess))
+	tempRatingHistory = list(ratingHistory)
+	tempRatingHistory.append(list(rating))
+
+	elimAmount = len(remainingCodes) - len(determine_rest(remainingCodes, tempGuessHistory, tempRatingHistory))
+
+	return elimAmount
+
+def minmax_guess(guessHistory, ratingHistory, remainingCodes):
+
+	# print("minmax called with remaining len: " + str(len(remainingCodes)))
+
+	tempRating = list()
+	eliminationCount = list()
+	eliminationGuesses = list()
+	eliminationRatings = list()
+
+	for i in range(len(unusedCodes)):
+		for b in range(5):
+			for w in range(5):
+				tempRating.clear()
+				if b + w < 5 and not (b == 3 and w == 1):
+					tempRating.append(b)
+					tempRating.append(w)
+					# print(tempRating)
+					# print(len(remainingCodes))
+					# print(i)
+					tempGuess = unusedCodes[i]
+					tempElim = count_eliminations(remainingCodes, tempGuess, tempRating, guessHistory, ratingHistory)
+					eliminationGuesses.append(list(tempGuess))
+					eliminationCount.append(tempElim)
+					eliminationRatings.append(list(tempRating))
+
+	eliminationMinMax = {"guess":[], "elim":[], "rating": []}
+
+	for i in range(len(eliminationGuesses)):
+		eliminationMinMax["guess"].append(eliminationGuesses[i])
+		eliminationMinMax["elim"].append(eliminationCount[i])
+		eliminationMinMax["rating"].append(eliminationRatings[i])
+
+	# look for the code that among all possible ratings has the lowest maximum of possible codes eliminated
+
+	prevGuess = list()
+	minElimList = list()
+	tempMinElim = 0
+	bestGuesses = list()
+
+	# print(str(len(eliminationMinMax["guess"])))
+
+	for i in range(len(eliminationMinMax["guess"])):
+
+		currentGuess = eliminationMinMax["guess"][i]
+		currentElim = eliminationMinMax["elim"][i]
+
+		if i == 0:
+			tempMinElim = currentElim
+			prevGuess = currentGuess
+		else:
+			if currentGuess == prevGuess:
+				if currentElim < tempMinElim:
+					tempMinElim = currentElim
+					prevGuess = currentGuess
+			else:
+				minElimList.append(tempMinElim)
+				bestGuesses.append(currentGuess)
+				tempMinElim = currentElim
+				prevGuess = currentGuess
+				
+	minmaxIndex = minElimList.index(max(minElimList))
+
+	return bestGuesses[minmaxIndex]	
 
 
-def make_guess(count, p, c, guessHistory, ratingHistory, remaining_codes):
+def make_guess(guessHistory, ratingHistory, remainingCodes):
+
+	# print("make_guess called with " + str(len(unusedCodes)) + " unused codes remaining.")
 
 	guess = list()
 
-	remaining_codes = determine_rest(remaining_codes, guessHistory, ratingHistory, p, c, count)
+	if guesses != 0:	
+		
+		remainingCodes = determine_rest(remainingCodes, guessHistory, ratingHistory)
+		# print(str(len(remainingCodes)) + " codes remain possible.")		
+		# print(remainingCodes)
+		
+		if len(remainingCodes) == 1:
+			guess = list(remainingCodes[0])
+			guessHistory.append(guess)
+			unusedCodes.remove(list(guess))
+			return guess
 
-	# print(str(len(remaining_codes)) + " codes remaining.")
+		guess = minmax_guess(guessHistory, ratingHistory, remainingCodes)
+		guessHistory.append(guess)
+		unusedCodes.remove(list(guess))
+		return guess
+		# TODO
 
-	# pick a random guess from all remaining guesses
-	rand_pointer = random.randint(0, len(remaining_codes)-1)
-	guess = list(remaining_codes[rand_pointer])
-	guessHistory.append(guess)
-	rem_codes = remaining_codes
-	return guess
+	else:
+		# the best first guess differs on approach.
+		guess = (1, 1, 2, 2)
+		guessHistory.append(guess)
+		unusedCodes.remove(list(guess))
+		return guess
+
 
 
 def score_guess(guess, solution, ratingHistory):
 
 	b = 0
 	w = 0
-	usedPos = list()
-	usedPos.clear()
-	blacksFound = list()
-	blacksFound.clear()
-	whitesFound = list()
-	whitesFound.clear()
 	score = list()
+	score.clear()
 
 	for i in range(len(solution)):
 		for j in range(len(solution)):
 			if solution[i] == guess[j]:
-				if i != j:
-					# if a number matches the solution, but is not at the same position, increase w and note the positions
-					if i not in blacksFound:
-						if i not in usedPos:
-							w += 1
-							whitesFound.append(i)
-							usedPos.append(i)
-				else:
+				if i == j:
 					# if a number is found at an identical position, increase b
-					blacksFound.append(i)
-					for k in range(whitesFound.count(i)):
-						# if w has already been increased for this position in the solution, decrease w again
-						w = w - 1
 					b += 1
+
+	w = 0
+	for i in range(c):
+		w = w + min(solution.count(i+1), guess.count(i+1))
+
+	w = w - b
 
 	score.append(b)
 	score.append(w)
+
+	# print("Grading guess", end = " ")
+	# print(guess)
+	# print(solution)
+	# print(score)
 	return score
 
 
@@ -121,11 +213,14 @@ def main():
 	global ratingHistory
 	global score
 	global numberList
-	global possible_codes
-	global rem_codes
+	global possibleCodes
+	global remCodes
+	global unusedCodes
 
-	p = int(input("Play with how many pegs? "))
-	c = int(input("Play with how many colors? "))
+	# p = int(input("Play with how many pegs? "))
+	# c = int(input("Play with how many colors? "))
+	p = 4
+	c = 6
 	gp = (p*(p+3))/2
 	npc = pow(c, p)
 	found = False
@@ -137,17 +232,22 @@ def main():
 	rating = np.array([0, 0])
 	score = list()
 	numberList = list()
-	rem_codes = list()
+	remCodes = list()
+	unusedCodes = list()
 
 	for i in range(c):
 		for j in range(p):
 			numberList.append(i+1)
 
 	# use a set of itertools' permutation to create a powerset including multiples
-	print("Initializing code database")
-	possible_codes = list(permutations(numberList, p))
-	possible_codes = list(set(possible_codes))
-	rem_codes = possible_codes
+	print("Initializing code database...")
+	possibleCodes = list(permutations(numberList, p))
+	possibleCodes = list(dict.fromkeys(possibleCodes))
+
+	remCodes = possibleCodes
+
+	for i in range(len(possibleCodes)):
+		unusedCodes.append(list(possibleCodes[i]))
 
 	print("Playing MM(" + str(p) + "," + str(c) + ").")
 	print("There are " + str(gp) + " possible grades and " + str(npc) + " possible codes in this game.")
@@ -156,22 +256,30 @@ def main():
 	for i in range(p):
 		solution.append(int(tempSolution[i]))
 
+	# print("Test: 1,1,2,2 with 3,0 eliminates", end = " ")
+	# testGuess = list((1,1,2,2))
+	# testRating = list((0,3))
+	# testElim = count_eliminations(remCodes, testGuess, testRating, guessHistory, ratingHistory)
+	# print(testElim)
+
+	# print("Making with: ")
+	# print(remCodes)
 	# guess until a solution has been found
 	while True:
 
-		currentGuess = make_guess(guesses, p, c, guessHistory, ratingHistory, rem_codes)
+		printGuess = make_guess(guessHistory, ratingHistory, remCodes)
 		guesses += 1
-		score = score_guess(currentGuess, solution, ratingHistory)
+		score = score_guess(printGuess, solution, ratingHistory)
 		ratingHistory.append(score)
 
-		print("guess # " + str(guesses+1) + ":", end = " ")
-		print(currentGuess)
+		print("guess # " + str(guesses) + ":", end = " ")
+		print(printGuess)
 		print("score:", end = " ")
 		print(score)
 
 		if score[0] == p:
 			print("Solution found:", end = " ")
-			print(currentGuess)
+			print(printGuess)
 			break
 
 
