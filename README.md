@@ -12,6 +12,7 @@ My code is most likely ugly, but still works.
 ## TODOs
 
 * comment the damn code
+* refactoring and cleanup (global variables)
 * optimize performance
-* look into why solution of (6,3,4,6) takes longer (repeating on identical remaining codes)
+* look into why solution of (6,3,4,6) takes longer than W
 * look into pruning
