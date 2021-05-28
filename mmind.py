@@ -1,4 +1,3 @@
-import numpy as np
 import itertools
 from itertools import permutations
 import random
@@ -208,7 +207,8 @@ def main():
 	global c
 	global gp
 	global npc
-	# solution = user input code, found = solution found bool, guess history, rating history = nested lists, score = (b, w) hits
+	# solution = user input code, found = solution found bool
+	# guess history, rating history = nested lists, score = (b, w) hits
 	global solution
 	global found
 	global guessHistory
@@ -219,8 +219,6 @@ def main():
 	global remCodes
 	global unusedCodes
 
-	# p = int(input("Play with how many pegs? "))
-	# c = int(input("Play with how many colors? "))
 	p = 4
 	c = 6
 	gp = (p*(p+3))/2
@@ -231,7 +229,6 @@ def main():
 	guessHistory = list()
 	ratingHistory = list()
 	guesses = 0
-	rating = np.array([0, 0])
 	score = list()
 	numberList = list()
 	remCodes = list()
@@ -258,15 +255,6 @@ def main():
 	for i in range(p):
 		solution.append(int(tempSolution[i]))
 
-	# print("Test: 1,1,2,2 with 3,0 eliminates", end = " ")
-	# testGuess = list((1,1,2,2))
-	# testRating = list((0,3))
-	# testElim = count_eliminations(remCodes, testGuess, testRating, guessHistory, ratingHistory)
-	# print(testElim)
-
-	# print("Making with: ")
-	# print(remCodes)
-	# guess until a solution has been found
 	while True:
 
 		printGuess = make_guess(guessHistory, ratingHistory, remCodes)
